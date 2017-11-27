@@ -1,0 +1,197 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil Consolas;}{\f1\fnil\fcharset0 Calibri;}}
+{\colortbl ;\red128\green128\blue128;\red0\green0\blue0;\red163\green21\blue21;\red0\green0\blue255;\red0\green128\blue0;\red43\green145\blue175;\red0\green128\blue128;\red47\green79\blue79;}
+{\*\generator Riched20 10.0.10240}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\cf1\f0\fs19\lang9 #include\cf2  \cf3 <SFML/Graphics.hpp>\cf2\par
+\cf1 #include\cf2  \cf3 <time.h>\cf2\par
+\cf4 using\cf2  \cf4 namespace\cf2  sf;\par
+\par
+\cf4 const\cf2  \cf4 int\cf2  N = 6;\par
+\cf4 int\cf2  ts = 54; \cf5 //tile size\cf2\par
+\cf6 Vector2f\cf2  offset(65, 55);\par
+\par
+\cf6 Vector2i\cf2  Up(0, -1);\par
+\cf6 Vector2i\cf2  Down(0, 1);\par
+\cf6 Vector2i\cf2  Right(1, 0);\par
+\cf6 Vector2i\cf2  Left(-1, 0);\par
+\par
+\cf6 Vector2i\cf2  DIR[4] = \{ Up,Right,Down,Left \};\par
+\par
+\cf4 struct\cf2  \cf6 pipe\cf2\par
+\{\par
+\tab std::\cf6 vector\cf2 <\cf6 Vector2i\cf2 > dirs;\par
+\tab\cf4 int\cf2  orientation;\par
+\tab\cf4 float\cf2  angle; \cf4 bool\cf2  on;\par
+\par
+\tab pipe() \{ angle = 0; \}\par
+\par
+\tab\cf4 void\cf2  rotate()\par
+\tab\{\par
+\tab\tab\cf4 for\cf2  (\cf4 int\cf2  i = 0; i<dirs.size(); i++)\par
+\tab\tab\tab\cf4 if\cf2  (dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 ==\cf2  Up)  dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 =\cf2  Right;\par
+\tab\tab\tab\cf4 else\cf2  \cf4 if\cf2  (dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 ==\cf2  Right) dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 =\cf2  Down;\par
+\tab\tab\tab\cf4 else\cf2  \cf4 if\cf2  (dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 ==\cf2  Down)  dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 =\cf2  Left;\par
+\tab\tab\tab\cf4 else\cf2  \cf4 if\cf2  (dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 ==\cf2  Left)  dirs\cf7 [\cf2 i\cf7 ]\cf2  \cf7 =\cf2  Up;\par
+\tab\}\par
+\par
+\tab\cf4 bool\cf2  isConnect(\cf6 Vector2i\cf2  \cf1 dir\cf2 )\par
+\tab\{\par
+\tab\tab\cf4 for\cf2  (\cf4 auto\cf2  d : dirs)\par
+\tab\tab\tab\cf4 if\cf2  (d \cf7 ==\cf2  \cf1 dir\cf2 ) \cf4 return\cf2  \cf4 true\cf2 ;\par
+\tab\tab\cf4 return\cf2  \cf4 false\cf2 ;\par
+\tab\}\par
+\};\par
+\par
+\par
+\cf6 pipe\cf2  grid[N][N];\par
+\cf6 pipe\cf2 & cell(\cf6 Vector2i\cf2  \cf1 v\cf2 ) \{ \cf4 return\cf2  grid[\cf1 v\cf2 .x][\cf1 v\cf2 .y]; \}\par
+\cf4 bool\cf2  isOut(\cf6 Vector2i\cf2  \cf1 v\cf2 ) \{ \cf4 return\cf2  !\cf6 IntRect\cf2 (0, 0, N, N).contains(\cf1 v\cf2 ); \}\par
+\par
+\par
+\cf4 void\cf2  generatePuzzle()\par
+\{\par
+\tab std::\cf6 vector\cf2 <\cf6 Vector2i\cf2 > nodes;\par
+\tab nodes.push_back(\cf6 Vector2i\cf2 (rand() % N, rand() % N));\par
+\par
+\tab\cf4 while\cf2  (!nodes.empty())\par
+\tab\{\par
+\tab\tab\cf4 int\cf2  n = rand() % nodes.size();\par
+\tab\tab\cf6 Vector2i\cf2  v = nodes\cf7 [\cf2 n\cf7 ]\cf2 ;\par
+\tab\tab\cf6 Vector2i\cf2  d = DIR[rand() % 4];\par
+\par
+\tab\tab\cf4 if\cf2  (cell(v).dirs.size() == 3) \{ nodes.erase(nodes.begin() \cf7 +\cf2  n); \cf4 continue\cf2 ; \}\par
+\tab\tab\cf4 if\cf2  (cell(v).dirs.size() == 2) \cf4 if\cf2  (rand() % 50) \cf4 continue\cf2 ;\par
+\par
+\tab\tab\cf4 bool\cf2  complete = 1;\par
+\tab\tab\cf4 for\cf2  (\cf4 auto\cf2  D : DIR)\par
+\tab\tab\tab\cf4 if\cf2  (!isOut(v \cf7 +\cf2  D) && cell(v \cf7 +\cf2  D).dirs.empty()) complete = 0;\par
+\tab\tab\cf4 if\cf2  (complete) \{ nodes.erase(nodes.begin() \cf7 +\cf2  n); \cf4 continue\cf2 ; \}\par
+\par
+\tab\tab\cf4 if\cf2  (isOut(v \cf7 +\cf2  d)) \cf4 continue\cf2 ;\par
+\tab\tab\cf4 if\cf2  (!cell(v \cf7 +\cf2  d).dirs.empty()) \cf4 continue\cf2 ;\par
+\tab\tab cell(v).dirs.push_back(d);\par
+\tab\tab cell(v \cf7 +\cf2  d).dirs.push_back(\cf7 -\cf2 d);\par
+\tab\tab nodes.push_back(v \cf7 +\cf2  d);\par
+\tab\}\par
+\}\par
+\par
+\par
+\cf4 void\cf2  drop(\cf6 Vector2i\cf2  \cf1 v\cf2 )\par
+\{\par
+\tab\cf4 if\cf2  (cell(\cf1 v\cf2 ).on) \cf4 return\cf2 ;\par
+\tab cell(\cf1 v\cf2 ).on = \cf4 true\cf2 ;\par
+\par
+\tab\cf4 for\cf2  (\cf4 auto\cf2  d : DIR)\par
+\tab\tab\cf4 if\cf2  (!isOut(\cf1 v\cf2  \cf7 +\cf2  d))\par
+\tab\tab\tab\cf4 if\cf2  (cell(\cf1 v\cf2 ).isConnect(d) && cell(\cf1 v\cf2  \cf7 +\cf2  d).isConnect(\cf7 -\cf2 d))\par
+\tab\tab\tab\tab drop(\cf1 v\cf2  \cf7 +\cf2  d);\par
+\}\par
+\par
+\par
+\cf4 int\cf2  main()\par
+\{\par
+\tab srand(time(0));\par
+\par
+\tab\cf6 RenderWindow\cf2  app(\cf6 VideoMode\cf2 (390, 390), \cf3 "The Pipe Puzzle!"\cf2 );\par
+\par
+\tab\cf6 Texture\cf2  t1, t2, t3, t4;\par
+\tab t1.loadFromFile(\cf3 "images/background1.png"\cf2 );\par
+\tab t2.loadFromFile(\cf3 "images/comp.png"\cf2 );\par
+\tab t3.loadFromFile(\cf3 "images/server.png"\cf2 );\par
+\tab t4.loadFromFile(\cf3 "images/pipes.png"\cf2 );\par
+\tab t4.setSmooth(\cf4 true\cf2 );\par
+\par
+\tab\cf6 Sprite\cf2  sBackground(t1), sComp(t2), sServer(t3), sPipe(t4);\par
+\tab sPipe.setOrigin(27, 27);\par
+\tab sComp.setOrigin(18, 18);\par
+\tab sServer.setOrigin(20, 20);\par
+\par
+\par
+\tab generatePuzzle();\par
+\par
+\tab\cf4 for\cf2  (\cf4 int\cf2  i = 0; i<N; i++)\par
+\tab\tab\cf4 for\cf2  (\cf4 int\cf2  j = 0; j<N; j++)\par
+\tab\tab\{\par
+\tab\tab\tab\cf6 pipe\cf2  &p = grid[j][i];\par
+\par
+\tab\tab\tab\cf4 for\cf2  (\cf4 int\cf2  n = 4; n>0; n--) \cf5 //find orientation//\cf2\par
+\tab\tab\tab\{\par
+\tab\tab\tab\tab std::\cf6 string\cf2  s = \cf3 ""\cf2 ;\par
+\tab\tab\tab\tab\cf4 for\cf2  (\cf4 auto\cf2  d : DIR) s \cf7 +=\cf2  p.isConnect(d) ? \cf3 '1'\cf2  : \cf3 '0'\cf2 ;\par
+\tab\tab\tab\tab\cf4 if\cf2  (s \cf7 ==\cf2  \cf3 "0011"\cf2  || s \cf7 ==\cf2  \cf3 "0111"\cf2  || s \cf7 ==\cf2  \cf3 "0101"\cf2  || s \cf7 ==\cf2  \cf3 "0010"\cf2 ) p.orientation = n;\par
+\tab\tab\tab\tab p.rotate();\par
+\tab\tab\tab\}\par
+\par
+\tab\tab\tab\cf4 for\cf2  (\cf4 int\cf2  n = 0; n<rand() % 4; n++) \cf5 //shuffle//\cf2\par
+\tab\tab\tab\{\par
+\tab\tab\tab\tab grid[j][i].orientation++; grid[j][i].rotate();\par
+\tab\tab\tab\}\par
+\tab\tab\}\par
+\par
+\tab\cf6 Vector2i\cf2  servPos;\par
+\tab\cf4 while\cf2  (cell(servPos).dirs.size() == 1) \{ servPos \cf7 =\cf2  \cf6 Vector2i\cf2 (rand() % N, rand() % N); \}\par
+\tab sServer.setPosition(\cf6 Vector2f\cf2 (servPos\cf7 *\cf2 ts));\par
+\tab sServer.move(offset);\par
+\par
+\tab\cf4 while\cf2  (app.isOpen())\par
+\tab\{\par
+\tab\tab\cf6 Event\cf2  e;\par
+\tab\tab\cf4 while\cf2  (app.pollEvent(e))\par
+\tab\tab\{\par
+\tab\tab\tab\cf4 if\cf2  (e.type == \cf6 Event\cf2 ::\cf8 Closed\cf2 )\par
+\tab\tab\tab\tab app.close();\par
+\par
+\tab\tab\tab\cf4 if\cf2  (e.type == \cf6 Event\cf2 ::\cf8 MouseButtonPressed\cf2 )\par
+\tab\tab\tab\tab\cf4 if\cf2  (e.key.code == \cf6 Mouse\cf2 ::\cf8 Left\cf2 )\par
+\tab\tab\tab\tab\{\par
+\tab\tab\tab\tab\tab\cf6 Vector2i\cf2  pos = \cf6 Mouse\cf2 ::getPosition(app) \cf7 +\cf2  \cf6 Vector2i\cf2 (ts / 2, ts / 2) \cf7 -\cf2  \cf6 Vector2i\cf2 (offset);\par
+\tab\tab\tab\tab\tab pos \cf7 /=\cf2  ts;\par
+\tab\tab\tab\tab\tab\cf4 if\cf2  (isOut(pos)) \cf4 continue\cf2 ;\par
+\tab\tab\tab\tab\tab cell(pos).orientation++;\par
+\tab\tab\tab\tab\tab cell(pos).rotate();\par
+\par
+\tab\tab\tab\tab\tab\cf4 for\cf2  (\cf4 int\cf2  i = 0; i<N; i++)\par
+\tab\tab\tab\tab\tab\tab\cf4 for\cf2  (\cf4 int\cf2  j = 0; j<N; j++)\par
+\tab\tab\tab\tab\tab\tab\tab grid[j][i].on = 0;\par
+\par
+\tab\tab\tab\tab\tab drop(servPos);\par
+\tab\tab\tab\tab\}\par
+\tab\tab\}\par
+\par
+\tab\tab app.clear();\par
+\tab\tab app.draw(sBackground);\par
+\par
+\tab\tab\cf4 for\cf2  (\cf4 int\cf2  i = 0; i<N; i++)\par
+\tab\tab\tab\cf4 for\cf2  (\cf4 int\cf2  j = 0; j<N; j++)\par
+\tab\tab\tab\{\par
+\tab\tab\tab\tab\cf6 pipe\cf2  &p = grid[j][i];\par
+\par
+\tab\tab\tab\tab\cf4 int\cf2  kind = p.dirs.size();\par
+\tab\tab\tab\tab\cf4 if\cf2  (kind == 2 && p.dirs\cf7 [\cf2 0\cf7 ]\cf2  \cf7 ==\cf2  \cf7 -\cf2 p.dirs\cf7 [\cf2 1\cf7 ]\cf2 ) kind = 0;\par
+\par
+\tab\tab\tab\tab p.angle += 5;\par
+\tab\tab\tab\tab\cf4 if\cf2  (p.angle>p.orientation * 90) p.angle = p.orientation * 90;\par
+\par
+\tab\tab\tab\tab sPipe.setTextureRect(\cf6 IntRect\cf2 (ts*kind, 0, ts, ts));\par
+\tab\tab\tab\tab sPipe.setRotation(p.angle);\par
+\tab\tab\tab\tab sPipe.setPosition(j*ts, i*ts); sPipe.move(offset);\par
+\tab\tab\tab\tab app.draw(sPipe);\par
+\par
+\tab\tab\tab\tab\cf4 if\cf2  (kind == 1)\par
+\tab\tab\tab\tab\{\par
+\tab\tab\tab\tab\tab\cf4 if\cf2  (p.on) sComp.setTextureRect(\cf6 IntRect\cf2 (53, 0, 36, 36));\par
+\tab\tab\tab\tab\tab\cf4 else\cf2  sComp.setTextureRect(\cf6 IntRect\cf2 (0, 0, 36, 36));\par
+\tab\tab\tab\tab\tab sComp.setPosition(j*ts, i*ts); sComp.move(offset);\par
+\tab\tab\tab\tab\tab app.draw(sComp);\par
+\tab\tab\tab\tab\}\par
+\tab\tab\tab\}\par
+\par
+\tab\tab app.draw(sServer);\par
+\tab\tab app.display();\par
+\tab\}\par
+\par
+\tab\cf4 return\cf2  0;\par
+\}\par
+\par
+\cf0\f1\fs22\par
+}
+ 
